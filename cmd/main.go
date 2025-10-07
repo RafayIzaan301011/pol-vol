@@ -1,17 +1,24 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+
+	"pvms/api/server"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
 
-	// database connection
+	server.RunHTTPServer(func(router *gin.Engine) http.Handler {
+		api := router.Group("/api")
 
-	// redis connection
+		api.GET("/ping", func(c *gin.Context) {
+			c.JSON(200, gin.H{"message": "pong"})
+		})
 
-	router := gin.Default()
-
-	// global middlewares
-
-	router.Run()
+		// return router since gin.Engine implements http.Handler
+		return router
+	})
 
 }

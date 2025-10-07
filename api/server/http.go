@@ -3,15 +3,13 @@ package server
 import (
 	"net/http"
 	"os"
-	"strings"
-	"time"
+	"pvms/middleware"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-// RunHTTPServer2 starts an HTTP server on the port specified by the PORT environment variable.
-func RunHTTPServer2(createHandler func(router *gin.Engine) http.Handler) {
+// RunHTTPServer starts an HTTP server on the port specified by the PORT environment variable.
+func RunHTTPServer(createHandler func(router *gin.Engine) http.Handler) {
 	RunHTTPServerOnAddr(":"+os.Getenv("PORT"), createHandler)
 }
 
@@ -20,6 +18,7 @@ func RunHTTPServerOnAddr(addr string, createHandler func(router *gin.Engine) htt
 	router := gin.Default()
 
 	// global middlewares
+	setMiddlewares(router)
 
 	handler := createHandler(router)
 
@@ -48,25 +47,5 @@ func setMiddlewares(router *gin.Engine) {
 		c.Next()
 	})
 
-	addCorsMiddleware(router)
-
-}
-
-// --- CORS SETUP ---
-func addCorsMiddleware(router *gin.Engine) {
-	allowedOrigins := strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ";")
-	if len(allowedOrigins) == 0 {
-		return
-	}
-
-	config := cors.Config{
-		AllowOrigins:     allowedOrigins,
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposeHeaders:    []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}
-
-	router.Use(cors.New(config))
+	middleware.AddCorsMiddleware(router)
 }
