@@ -4,6 +4,9 @@ import (
 	"context"
 	"pvms/pkg/errors"
 	"pvms/volunteer/domain"
+	"pvms/volunteer/domain/volunteer"
+
+	"github.com/google/uuid"
 )
 
 type CreateVolunteerRequest struct {
@@ -53,17 +56,20 @@ func (req *CreateVolunteerRequest) validate() error {
 
 type CreateVolunteer func(ctx context.Context, req CreateVolunteerRequest) (*domain.Volunteer, error)
 
-func NewCreateVolunteer() CreateVolunteer {
+func NewCreateVolunteer(volunteerRepo volunteer.Repository) CreateVolunteer {
 	return func(ctx context.Context, req CreateVolunteerRequest) (*domain.Volunteer, error) {
 
-		// validate
+		// validate the request
 		err := req.validate()
 		if err != nil {
 			return nil, err
 		}
 
+		volID := uuid.New().String()
+
 		// map to domain
-		_ = domain.Volunteer{
+		volunteer := domain.Volunteer{
+			ID:           volID,
 			Name:         req.Name,
 			Age:          req.Age,
 			Phone:        req.Phone,
@@ -74,9 +80,11 @@ func NewCreateVolunteer() CreateVolunteer {
 			IsActive:     req.IsActive,
 		}
 
-		// call the repo
+		savedVolunteer, err := volunteerRepo.Create(ctx, &volunteer)
+		if err != nil {
+			return nil, errors.InternalServerError(ctx, "failed to create volunteer")
+		}
 
-		// return the domain
-		return nil, nil
+		return savedVolunteer, nil
 	}
 }

@@ -30,6 +30,7 @@ func (r Role) MarshalJSON() ([]byte, error) {
 }
 
 type Volunteer struct {
+	ID           string
 	Name         string
 	Age          int
 	Phone        string
