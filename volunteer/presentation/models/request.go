@@ -17,5 +17,14 @@ type CreateVolunteerRequest struct {
 }
 
 type UpdateVolunteerRequest struct {
-	VolunteerRequest
+	Name *string `json:"name"`
+	Age  *int    `json:"age" binding:"omitempty,gte=18"`
+
+	Phone *string `json:"phone" binding:"omitempty,e164"`
+	CNIC  *string `json:"cnic" binding:"omitempty,len=13"`
+
+	Role         *int    `json:"role" binding:"omitempty,oneof=1 2 3 4"`
+	City         *string `json:"city"`
+	Constituency *string `json:"constituency"`
+	Active       *bool   `json:"active"`
 }
