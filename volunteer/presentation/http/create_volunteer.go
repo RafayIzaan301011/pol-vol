@@ -5,6 +5,7 @@ import (
 	"pvms/utils"
 	"pvms/volunteer/application"
 	"pvms/volunteer/domain"
+	"pvms/volunteer/presentation/adapter"
 	"pvms/volunteer/presentation/models"
 
 	"github.com/gin-gonic/gin"
@@ -44,9 +45,7 @@ func NewVolunteer(createVolunteer application.CreateVolunteer) CreateVolunteer {
 			return
 		}
 
-		// on succes return the volunteer id
-		//todo: create the adapter
-		c.JSON(http.StatusOK, volunteer)
-
+		// on succes return the volunteer response
+		c.JSON(http.StatusOK, adapter.GetVolunteerResponseFromDomain(volunteer))
 	}
 }

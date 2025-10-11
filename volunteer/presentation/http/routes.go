@@ -9,6 +9,5 @@ func RegisterRoutes(router *gin.Engine, db *gorm.DB) {
 	// Register volunteer routes
 	// todo: load the config
 
-	router.Group("api/volunteers")
-
+	router.Group("/volunteers")
 }
