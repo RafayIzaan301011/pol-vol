@@ -4,12 +4,14 @@ import (
 	"context"
 	"pvms/pkg/errors"
 	"pvms/volunteer/domain"
+	"pvms/volunteer/domain/security"
 	"pvms/volunteer/domain/volunteer"
 
 	"github.com/google/uuid"
 )
 
 type CreateVolunteerRequest struct {
+	UserID       int
 	Name         string
 	Age          int
 	Phone        string
@@ -23,6 +25,11 @@ type CreateVolunteerRequest struct {
 func (req *CreateVolunteerRequest) validate() error {
 
 	ctx := context.TODO()
+
+	if req.UserID == 0 {
+		return errors.BadRequest(ctx, "user id is required")
+	}
+
 	if req.Name == "" {
 		return errors.BadRequest(ctx, "name is required")
 	}
@@ -56,9 +63,8 @@ func (req *CreateVolunteerRequest) validate() error {
 
 type CreateVolunteer func(ctx context.Context, req CreateVolunteerRequest) (*domain.Volunteer, error)
 
-func NewCreateVolunteer(volunteerRepo volunteer.Repository) CreateVolunteer {
+func NewCreateVolunteer(volunteerRepo volunteer.Repository, encryption security.Encryption) CreateVolunteer {
 	return func(ctx context.Context, req CreateVolunteerRequest) (*domain.Volunteer, error) {
-
 		// validate the request
 		err := req.validate()
 		if err != nil {
@@ -66,6 +72,16 @@ func NewCreateVolunteer(volunteerRepo volunteer.Repository) CreateVolunteer {
 		}
 
 		volID := uuid.New().String()
+
+		// encrypt cnic if the role is rogue
+		if req.Role == domain.RoleRogue {
+			encryptedNationalityNumber, err := encryption.Encrypt(req.CNIC)
+			if err != nil {
+				return nil, errors.InternalServerErrorf(ctx, "failed to encrypt cnic: %v", err)
+			}
+
+			req.CNIC = encryptedNationalityNumber
+		}
 
 		// map to domain
 		volunteer := domain.Volunteer{
@@ -80,6 +96,7 @@ func NewCreateVolunteer(volunteerRepo volunteer.Repository) CreateVolunteer {
 			IsActive:     req.IsActive,
 		}
 
+		// create volunteer
 		savedVolunteer, err := volunteerRepo.Create(ctx, &volunteer)
 		if err != nil {
 			return nil, errors.InternalServerError(ctx, "failed to create volunteer")

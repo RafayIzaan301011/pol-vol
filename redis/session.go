@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"pvms/sessions"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -20,7 +21,7 @@ func NewSessionStore(client *redis.ClusterClient) *SessionStore {
 	}
 }
 
-func (ss *SessionStore) Set(ctx context.Context, sessionID string, data map[string]string, ttlSeconds int) error {
+func (ss *SessionStore) Set(ctx context.Context, sessionID string, data sessions.SessionData, ttlSeconds int) error {
 	bytes, err := json.Marshal(data)
 	if err != nil {
 		return err
@@ -29,7 +30,7 @@ func (ss *SessionStore) Set(ctx context.Context, sessionID string, data map[stri
 	return ss.ClusterClient.Set(ctx, sessionID, bytes, time.Duration(ttlSeconds)*time.Second).Err()
 }
 
-func (ss *SessionStore) Get(ctx context.Context, sessionID string) (map[string]string, error) {
+func (ss *SessionStore) Get(ctx context.Context, sessionID string) (*sessions.SessionData, error) {
 	val, err := ss.ClusterClient.Get(ctx, sessionID).Result()
 	if errors.Is(err, redis.Nil) {
 		return nil, nil
@@ -39,12 +40,12 @@ func (ss *SessionStore) Get(ctx context.Context, sessionID string) (map[string]s
 		return nil, fmt.Errorf("get session %v", err)
 	}
 
-	var data map[string]string
+	var data sessions.SessionData
 	if err := json.Unmarshal([]byte(val), &data); err != nil {
 		return nil, err
 	}
 
-	return data, nil
+	return &data, nil
 }
 
 func (ss *SessionStore) Delete(ctx context.Context, sessionID string) error {
