@@ -18,12 +18,13 @@ func NewSessionStore(store SessionStore, ttl int) Manager {
 	}
 }
 
-func (m *manager) CreateSession(ctx context.Context, userID string) (string, error) {
+func (m *manager) CreateSession(ctx context.Context, userID string, role string) (string, error) {
 
 	sessionID := uuid.NewString()
-	data := map[string]string{
-		"user_id":    userID,
-		"created_at": time.Now().Format(time.RFC3339),
+	data := SessionData{
+		UserID:    userID,
+		CreatedAt: time.Now().Format(time.RFC3339),
+		Role:      role,
 	}
 
 	err := m.Store.Set(ctx, sessionID, data, m.Ttl)
@@ -35,7 +36,7 @@ func (m *manager) CreateSession(ctx context.Context, userID string) (string, err
 
 }
 
-func (m *manager) GetSession(ctx context.Context, sessionID string) (map[string]string, error) {
+func (m *manager) GetSession(ctx context.Context, sessionID string) (*SessionData, error) {
 	data, err := m.Store.Get(ctx, sessionID)
 	if err != nil {
 		return nil, err

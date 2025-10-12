@@ -7,6 +7,7 @@ type Role int
 const (
 	RoleTier1 Role = iota
 	RoleTier2
+	RoleRogue
 	RoleLeader
 	RoleAdmin
 )
@@ -15,6 +16,7 @@ func (r Role) String() string {
 	roles := [...]string{
 		"Tier 1",
 		"Tier 2",
+		"Rogue",
 		"Leader",
 		"Admin",
 	}

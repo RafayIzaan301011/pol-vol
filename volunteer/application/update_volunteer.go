@@ -5,13 +5,15 @@ import (
 
 	"pvms/pkg/errors"
 	"pvms/volunteer/domain"
+	"pvms/volunteer/domain/security"
 	"pvms/volunteer/domain/volunteer"
 )
 
 type UpdateVolunteerRequest struct {
-	ID   string
-	Name *string
-	Age  *int
+	UserID int
+	ID     string
+	Name   *string
+	Age    *int
 
 	Phone *string
 	CNIC  *string
@@ -22,9 +24,14 @@ type UpdateVolunteerRequest struct {
 	IsActive     *bool
 }
 
-func (r *UpdateVolunteerRequest) volidate() error {
+func (r *UpdateVolunteerRequest) validate() error {
 
 	ctx := context.TODO()
+
+	if r.UserID == 0 {
+		return errors.BadRequest(ctx, "user id is required")
+	}
+
 	if r.ID == "" {
 		return errors.BadRequest(ctx, "id is required")
 	}
@@ -83,9 +90,9 @@ func (r *UpdateVolunteerRequest) toDomain() *domain.Volunteer {
 
 type UpdateVolunteer func(ctx context.Context, req UpdateVolunteerRequest) (*domain.Volunteer, error)
 
-func NewUpdateVolunteer(volunteerRepo volunteer.Repository) UpdateVolunteer {
+func NewUpdateVolunteer(volunteerRepo volunteer.Repository, volunteerSecurity security.Encryption) UpdateVolunteer {
 	return func(ctx context.Context, req UpdateVolunteerRequest) (*domain.Volunteer, error) {
-		if err := req.volidate(); err != nil {
+		if err := req.validate(); err != nil {
 			return nil, err
 		}
 
