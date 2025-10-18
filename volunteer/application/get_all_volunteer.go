@@ -8,7 +8,7 @@ import (
 )
 
 type GetAllVolunteerRequest struct {
-	Volunteer *VolunteerFilter
+	Volunteer VolunteerFilter
 }
 
 type VolunteerFilter struct {
@@ -21,13 +21,11 @@ type VolunteerFilter struct {
 
 	Limit  *int
 	Offset *int
+	Sort   *bool
 }
 
 func (r *GetAllVolunteerRequest) validate() error {
 	ctx := context.TODO()
-	if r.Volunteer == nil {
-		return nil
-	}
 
 	if r.Volunteer.Age != nil && *r.Volunteer.Age < 18 {
 		return errors.BadRequest(ctx, "age must be at least 18")
@@ -68,6 +66,16 @@ func NewGetAllVolunteer(volunteerRepo volunteer.Repository) GetAllVolunteer {
 		err := req.validate()
 		if err != nil {
 			return nil, errors.InternalServerErrorf(ctx, "failed to validate get all volunteer request: %v", err)
+		}
+
+		if req.Volunteer.Limit == nil {
+			defaultLimit := 20
+			req.Volunteer.Limit = &defaultLimit
+		}
+
+		if req.Volunteer.Offset == nil {
+			defaultOffset := 0
+			req.Volunteer.Offset = &defaultOffset
 		}
 
 		volunteers, err := volunteerRepo.GetAll(ctx, req.Volunteer.toDomain())

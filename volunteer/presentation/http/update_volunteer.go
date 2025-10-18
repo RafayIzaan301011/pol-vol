@@ -53,6 +53,5 @@ func NewUpdateVolunteer(updateVolunteer application.UpdateVolunteer) UpdateVonte
 		}
 
 		c.JSON(http.StatusOK, adapter.GetVolunteerResponseFromDomain(updatedVolunteer))
-
 	}
 }
