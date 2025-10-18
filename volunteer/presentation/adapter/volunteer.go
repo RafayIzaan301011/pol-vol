@@ -18,3 +18,12 @@ func GetVolunteerResponseFromDomain(vd *domain.Volunteer) *models.VolunteerRespo
 		Active:       vd.IsActive,
 	}
 }
+
+func GetAllVolunteerResponseFromDomain(volunteers []domain.Volunteer) []models.VolunteerResponse {
+	volResponse := make([]models.VolunteerResponse, len(volunteers))
+	for i := range volunteers {
+		volResponse[i] = *GetVolunteerResponseFromDomain(&volunteers[i])
+	}
+
+	return volResponse
+}
